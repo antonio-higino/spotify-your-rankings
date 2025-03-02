@@ -1,8 +1,8 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import streamlit as st
+import pandas as pd
 import os
-from dataclasses import dataclass
 
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
@@ -17,84 +17,150 @@ sp = spotipy.Spotify(
     )
 )
 
-@dataclass
-class ArtistOrTrack:
-    rank: int
-    delta: int | None
-    name: str
-    url: str
+def calculateDeltas(list1, list2):
+    for item1 in list1:
+        for item2 in list2:
+            if item1["name"] == item2["name"]:
+                item1["delta"] = str(item2["rank"] - item1["rank"])
+                if int(item1["delta"]) < 0:
+                    item1["delta"] = "" + item1["delta"] + ""
+                elif int(item1["delta"]) == 0:
+                    item1["delta"] = item1["delta"] + ""
+                elif int(item1["delta"]) > 0:
+                    item1["delta"] = item1["delta"] + ""
 
-artists_long = sp.current_user_top_artists(limit=20, time_range="long_term")
+artists_long = sp.current_user_top_artists(limit=50, time_range="long_term")
 artists_long_list = []
 for i, artist in enumerate(artists_long["items"]):
-    artists_long_list.append(ArtistOrTrack(i+1, None, artist["name"], artist["external_urls"]["spotify"]))
+    artists_long_list.append({"rank" : i+1, "delta" : "⭐", "name" : artist["name"], "url" : artist["external_urls"]["spotify"] + "#" + artist["name"]})
 
-artists_medium = sp.current_user_top_artists(limit=20, time_range="medium_term")
+artists_medium = sp.current_user_top_artists(limit=50, time_range="medium_term")
 artists_medium_list = []
 for i, artist in enumerate(artists_medium["items"]):
-    artists_medium_list.append(ArtistOrTrack(i+1, None, artist["name"], artist["external_urls"]["spotify"]))
-for art_med in artists_medium_list:
-    for art_lon in artists_long_list:
-        if art_med.name == art_lon.name:
-            art_med.delta = art_lon.rank - art_med.rank
+    artists_medium_list.append({"rank" : i+1, "delta" : "⭐", "name" : artist["name"], "url" : artist["external_urls"]["spotify"] + "#" + artist["name"]})
+calculateDeltas(artists_medium_list, artists_long_list)
 
-artists_short = sp.current_user_top_artists(limit=20, time_range="short_term")
+artists_short = sp.current_user_top_artists(limit=50, time_range="short_term")
 artists_short_list = []
 for i, artist in enumerate(artists_short["items"]):
-    artists_short_list.append(ArtistOrTrack(i+1, None, artist["name"], artist["external_urls"]["spotify"]))
-for art_sho in artists_short_list:
-    for art_med in artists_medium_list:
-        if art_sho.name == art_med.name:
-            art_sho.delta = art_med.rank - art_sho.rank
+    artists_short_list.append({"rank" : i+1, "delta" : "⭐", "name" : artist["name"], "url" : artist["external_urls"]["spotify"] + "#" + artist["name"]})
+calculateDeltas(artists_short_list, artists_medium_list)
 
-tracks_long = sp.current_user_top_tracks(limit=20, time_range="long_term")
+tracks_long = sp.current_user_top_tracks(limit=50, time_range="long_term")
 tracks_long_list = []
 for i, track in enumerate(tracks_long["items"]):
-    tracks_long_list.append(ArtistOrTrack(i+1, None, track["name"], track["external_urls"]["spotify"]))
+    tracks_long_list.append({"rank" : i+1, "delta" : "⭐", "name" : track["name"], "url" : track["external_urls"]["spotify"] + "#" + track["name"]})
 
-tracks_medium = sp.current_user_top_tracks(limit=20, time_range="medium_term")
+tracks_medium = sp.current_user_top_tracks(limit=50, time_range="medium_term")
 tracks_medium_list = []
 for i, track in enumerate(tracks_medium["items"]):
-    tracks_medium_list.append(ArtistOrTrack(i+1, None, track["name"], track["external_urls"]["spotify"]))
-for tra_med in tracks_medium_list:
-    for tra_lon in tracks_long_list:
-        if tra_med.name == tra_lon.name:
-            tra_med.delta = tra_lon.rank - tra_med.rank
+    tracks_medium_list.append({"rank" : i+1, "delta" : "⭐", "name" : track["name"], "url" : track["external_urls"]["spotify"] + "#" + track["name"]})
+calculateDeltas(tracks_medium_list, tracks_long_list)
 
-tracks_short = sp.current_user_top_tracks(limit=20, time_range="short_term")
+tracks_short = sp.current_user_top_tracks(limit=50, time_range="short_term")
 tracks_short_list = []
 for i, track in enumerate(tracks_short["items"]):
-    tracks_short_list.append(ArtistOrTrack(i+1, None, track["name"], track["external_urls"]["spotify"]))
-for tra_sho in tracks_short_list:
-    for tra_med in tracks_medium_list:
-        if tra_sho.name == tra_med.name:
-            tra_sho.delta = tra_med.rank - tra_sho.rank
+    tracks_short_list.append({"rank" : i+1, "delta" : "⭐", "name" : track["name"], "url" : track["external_urls"]["spotify"] + "#" + track["name"]})
+calculateDeltas(tracks_short_list, tracks_medium_list)
 
-# for item in artists_medium_list:
-#     print(item.name, item.rank, item.delta)
+df_art_lon = pd.DataFrame(artists_long_list)
+df_art_med = pd.DataFrame(artists_medium_list)
+df_art_sho = pd.DataFrame(artists_short_list)
 
-artists_long_string = ""
-for item in artists_long_list:
-    artists_long_string += "Rank: " + str(item.rank) + " " + item.name + " Delta: " + str(item.delta)
-
-print(artists_long_string)
+df_tra_lon = pd.DataFrame(tracks_long_list)
+df_tra_med = pd.DataFrame(tracks_medium_list)
+df_tra_sho = pd.DataFrame(tracks_short_list)
 
 st.set_page_config(page_title="Your Spotify Rankings", page_icon=":medal:", layout="wide")
 st.title("View your artist and track rankings")
 
-col1, col2, col3 = st.columns(3)
+tab_art, tab_tra = st.tabs(["Artists", "Tracks"])
+with tab_art:
+    col_art_lon, col_art_med, col_art_sho = st.columns(3)
+    with col_art_lon:
+        st.subheader("Long term")
+        st.dataframe(
+            df_art_lon,
+            column_config={
+                "rank": "Rank",
+                "delta": "Variation",
+                "url": st.column_config.LinkColumn("Artist", display_text=r"#(.*)", width="large"),
+            },
+            column_order=["rank", "url", "delta"],
+            hide_index=True,
+            use_container_width=False,
+            height=(35*len(df_art_lon)+38)
+        )
+    with col_art_med:
+        st.subheader("Medium term")
+        st.dataframe(
+            df_art_med,
+            column_config={
+                "rank": "Rank",
+                "delta": "Variation",
+                "url": st.column_config.LinkColumn("Artist", display_text=r"#(.*)", width="large"),
+            },
+            column_order=["rank", "url", "delta"],
+            hide_index=True,
+            use_container_width=False,
+            height=(35*len(df_art_med)+38)
+        )
+    with col_art_sho:
+        st.subheader("Short term")
+        st.dataframe(
+            df_art_sho,
+            column_config={
+                "rank": "Rank",
+                "delta": "Variation",
+                "url": st.column_config.LinkColumn("Artist", display_text=r"#(.*)", width="large"),
+            },
+            column_order=["rank", "url", "delta"],
+            hide_index=True,
+            use_container_width=False,
+            height=(35*len(df_art_sho)+38)
+        )
 
-with col1:
-    st.subheader("Longo prazo")
-    st.write("Artistas:")
-    st.write(artists_long_string)
-    st.write("Músicas:")
-    st.write_stream(tracks_long_list)
-
-with col2:
-    st.subheader("Médio prazo")
-    st.write("Artistas:", artists_medium_list, "Músicas:", tracks_medium_list)
-
-with col3:
-    st.subheader("Curto prazo")
-    st.write("Artistas:", artists_short_list, "Músicas:", tracks_short_list)
+with tab_tra:
+    col_tra_lon, col_tra_med, col_tra_sho = st.columns(3)
+    with col_tra_lon:
+        st.subheader("Long term")
+        st.dataframe(
+            df_tra_lon,
+            column_config={
+                "rank": "Rank",
+                "delta": "Variation",
+                "url": st.column_config.LinkColumn("Track", display_text=r"#(.*)", width="large"),
+            },
+            column_order=["rank", "url", "delta"],
+            hide_index=True,
+            use_container_width=False,
+            height=(35*len(df_tra_lon)+38)
+        )
+    with col_tra_med:
+        st.subheader("Medium term")
+        st.dataframe(
+            df_tra_med,
+            column_config={
+                "rank": "Rank",
+                "delta": "Variation",
+                "url": st.column_config.LinkColumn("Track", display_text=r"#(.*)", width="large"),
+            },
+            column_order=["rank", "url", "delta"],
+            hide_index=True,
+            use_container_width=False,
+            height=(35*len(df_tra_med)+38)
+        )
+    with col_tra_sho:
+        st.subheader("Short term")
+        st.dataframe(
+            df_tra_sho,
+            column_config={
+                "rank": "Rank",
+                "delta": "Variation",
+                "url": st.column_config.LinkColumn("Track", display_text=r"#(.*)", width="large"),
+            },
+            column_order=["rank", "url", "delta"],
+            hide_index=True,
+            use_container_width=False,
+            height=(35*len(df_tra_sho)+38)
+        )
