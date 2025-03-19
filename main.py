@@ -22,45 +22,47 @@ def calculateDeltas(list1, list2):
         for item2 in list2:
             if item1["name"] == item2["name"]:
                 item1["delta"] = str(item2["rank"] - item1["rank"])
-                if int(item1["delta"]) < 0:
-                    item1["delta"] = "" + item1["delta"] + ""
-                elif int(item1["delta"]) == 0:
-                    item1["delta"] = item1["delta"] + ""
-                elif int(item1["delta"]) > 0:
-                    item1["delta"] = item1["delta"] + ""
+                if int(item1["delta"]) > 0:
+                    item1["delta"] = "+" + item1["delta"]
+
+def setBackgroundColor(item):
+    if item != "NEW!" and int(item) < 0:
+        return f"background-color: {'#600000'}"
+    elif item != "NEW!" and int(item) != 0:
+        return f"background-color: {'#006024'}"
 
 artists_long = sp.current_user_top_artists(limit=50, time_range="long_term")
 artists_long_list = []
 for i, artist in enumerate(artists_long["items"]):
-    artists_long_list.append({"rank" : i+1, "delta" : "⭐", "name" : artist["name"], "url" : artist["external_urls"]["spotify"] + "#" + artist["name"]})
+    artists_long_list.append({"rank" : i+1, "delta" : "NEW!", "name" : artist["name"], "url" : artist["external_urls"]["spotify"] + "#" + artist["name"]})
 
 artists_medium = sp.current_user_top_artists(limit=50, time_range="medium_term")
 artists_medium_list = []
 for i, artist in enumerate(artists_medium["items"]):
-    artists_medium_list.append({"rank" : i+1, "delta" : "⭐", "name" : artist["name"], "url" : artist["external_urls"]["spotify"] + "#" + artist["name"]})
+    artists_medium_list.append({"rank" : i+1, "delta" : "NEW!", "name" : artist["name"], "url" : artist["external_urls"]["spotify"] + "#" + artist["name"]})
 calculateDeltas(artists_medium_list, artists_long_list)
 
 artists_short = sp.current_user_top_artists(limit=50, time_range="short_term")
 artists_short_list = []
 for i, artist in enumerate(artists_short["items"]):
-    artists_short_list.append({"rank" : i+1, "delta" : "⭐", "name" : artist["name"], "url" : artist["external_urls"]["spotify"] + "#" + artist["name"]})
+    artists_short_list.append({"rank" : i+1, "delta" : "NEW!", "name" : artist["name"], "url" : artist["external_urls"]["spotify"] + "#" + artist["name"]})
 calculateDeltas(artists_short_list, artists_medium_list)
 
 tracks_long = sp.current_user_top_tracks(limit=50, time_range="long_term")
 tracks_long_list = []
 for i, track in enumerate(tracks_long["items"]):
-    tracks_long_list.append({"rank" : i+1, "delta" : "⭐", "name" : track["name"], "url" : track["external_urls"]["spotify"] + "#" + track["name"]})
+    tracks_long_list.append({"rank" : i+1, "delta" : "NEW!", "name" : track["name"], "url" : track["external_urls"]["spotify"] + "#" + track["name"]})
 
 tracks_medium = sp.current_user_top_tracks(limit=50, time_range="medium_term")
 tracks_medium_list = []
 for i, track in enumerate(tracks_medium["items"]):
-    tracks_medium_list.append({"rank" : i+1, "delta" : "⭐", "name" : track["name"], "url" : track["external_urls"]["spotify"] + "#" + track["name"]})
+    tracks_medium_list.append({"rank" : i+1, "delta" : "NEW!", "name" : track["name"], "url" : track["external_urls"]["spotify"] + "#" + track["name"]})
 calculateDeltas(tracks_medium_list, tracks_long_list)
 
 tracks_short = sp.current_user_top_tracks(limit=50, time_range="short_term")
 tracks_short_list = []
 for i, track in enumerate(tracks_short["items"]):
-    tracks_short_list.append({"rank" : i+1, "delta" : "⭐", "name" : track["name"], "url" : track["external_urls"]["spotify"] + "#" + track["name"]})
+    tracks_short_list.append({"rank" : i+1, "delta" : "NEW!", "name" : track["name"], "url" : track["external_urls"]["spotify"] + "#" + track["name"]})
 calculateDeltas(tracks_short_list, tracks_medium_list)
 
 df_art_lon = pd.DataFrame(artists_long_list)
@@ -94,7 +96,7 @@ with tab_art:
     with col_art_med:
         st.subheader("Medium term")
         st.dataframe(
-            df_art_med,
+            df_art_med.style.map(setBackgroundColor, subset=["delta"]),
             column_config={
                 "rank": "Rank",
                 "delta": "Variation",
@@ -108,7 +110,7 @@ with tab_art:
     with col_art_sho:
         st.subheader("Short term")
         st.dataframe(
-            df_art_sho,
+            df_art_sho.style.map(setBackgroundColor, subset=["delta"]),
             column_config={
                 "rank": "Rank",
                 "delta": "Variation",
@@ -139,7 +141,7 @@ with tab_tra:
     with col_tra_med:
         st.subheader("Medium term")
         st.dataframe(
-            df_tra_med,
+            df_tra_med.style.map(setBackgroundColor, subset=["delta"]),
             column_config={
                 "rank": "Rank",
                 "delta": "Variation",
@@ -153,7 +155,7 @@ with tab_tra:
     with col_tra_sho:
         st.subheader("Short term")
         st.dataframe(
-            df_tra_sho,
+            df_tra_sho.style.map(setBackgroundColor, subset=["delta"]),
             column_config={
                 "rank": "Rank",
                 "delta": "Variation",
