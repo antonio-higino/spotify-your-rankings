@@ -11,7 +11,7 @@ sp = spotipy.Spotify(
     auth_manager=SpotifyOAuth(
         client_id=CLIENT_ID,
         client_secret=CLIENT_SECRET,
-        redirect_uri="https://example.com/callback",
+        redirect_uri="https://example.com/callback/",
         scope="user-top-read, user-read-recently-played"
     )
 )
